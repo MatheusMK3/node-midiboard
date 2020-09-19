@@ -18,6 +18,9 @@ const app = {
     key: 0,
     pad: 0,
     knob: 0,
+    pitch: 0,
+    slider: 0,
+    modulation: 0,
   },
 
   // Main application screen
@@ -38,23 +41,38 @@ const app = {
       choices: midi_inputs.map(input => { return { title: input, value: input } }),
     })).device
 
-    // Initiates device and moves into device menu
+    // Initiates device
     app.config.device = app.device_name
     app.device = new easymidi.Input(app.device_name)
+
+    // Checks for existing config file and preloads it
+    if (fs.existsSync(`configs/${app.device_name}.json`)) {
+      console.info('Found existing configuration file, loading...')
+      app.config = JSON.parse(fs.readFileSync(`configs/${app.device_name}.json`).toString())
+    }
+
+    // Moves to device menu
     app.menu_device()
   },
 
   // When a valid device is selected
   async menu_device () {
+    // Informations
+    console.info(`Currently registered events for this controller: ${Object.keys(app.config.mapping).length}`)
+
     // Asks what to do
     const submenu = await prompts({
       type: 'select',
       name: 'action',
       message: 'What do you want to do?',
       choices: [
-        { title: 'Register keyboard keys', value: () => { app.menu_register('key') } },
-        { title: 'Register pads', value: () => { app.menu_register('pad') } },
+        { title: 'Register keyboard keys', value: () => { app.menu_register_range('key') } },
+        { title: 'Register pads', value: () => { app.menu_register_range('pad') } },
         { title: 'Register knobs', value: () => { app.menu_register_knobs() } },
+        { title: 'Register mod', value: () => { app.menu_register_single('modulation') } },
+        { title: 'Register pitch', value: () => { app.menu_register_single('pitch') } },
+        { title: 'Register slider', value: () => { app.menu_register_single('slider') } },
+        { title: 'Reset/clear configs', value: () => { app.menu_reset() } },
         { title: 'Save configs and exit', value: () => { app.menu_save() } },
       ]
     })
@@ -63,8 +81,8 @@ const app = {
     submenu.action()
   },
 
-  // Register keys
-  async menu_register (type) {
+  // Register a controller range
+  async menu_register_range (type) {
     console.info(`Quickly press and let go of the first ${type} in the range you want to register:`)
     const keyFirst = lib.parseEvent(await lib.nextControllerEvent(app.device))
 
@@ -105,6 +123,33 @@ const app = {
           number: app.counts[type]++
         }
       })
+    }
+
+    // Goes back to menu
+    app.menu_device()
+  },
+
+  // Register a single controller
+  async menu_register_single (type) {
+    console.info(`Interact with the ${type} you want to register:`)
+    const controller = lib.parseEvent(await lib.nextControllerEvent(app.device))
+
+    // Processes
+    console.info(`Processing ${type} ${controller.id} on channel ${controller.channel}...`)
+
+    // Generates the key code
+    const code = lib.getEventCode(controller)
+
+    // Checks if key was already mapped
+    if (app.config.mapping[code]) {
+      console.info(`Event with code '${code}' already mapped, skipping.`)
+      return
+    }
+
+    // Saves on mapping
+    app.config.mapping[code] = {
+      type: type,
+      number: app.counts[type]++
     }
 
     // Goes back to menu
@@ -210,6 +255,15 @@ const app = {
 
     // Starts listening to knob events
     device.on('message', handler)
+  },
+
+  // Save current settings
+  async menu_reset () {
+    // Resets config
+    app.config.mapping = {}
+
+    // Exits to menu
+    app.menu_device()
   },
 
   // Save current settings
