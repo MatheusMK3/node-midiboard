@@ -8,7 +8,7 @@ Currently this library is experimental and everything about it is **SUBJECT TO C
 
 ## Profiling
 
-You can use the built-in `makeconfig.js` file to create device profiles. These are currently divided in three groups, `keys` for keyboards, `pads` for drum pads and launchers and `knobs` for knobs (and potentially sliders too).
+You can use the built-in `makeconfig.js` file to create device profiles. These are currently divided in six groups, `keys` for keyboards, `pads` for drum pads and launchers, `knobs` for knobs (and potentially sliders too), `slider` for general slider behaviour, `modulation` which is pretty much the same as `slider`, but under a separated name due to functionality and `pitch` for the pitch controllers.
 
 When profiling for keys and pads, the procedure is straightforward, just hit your first and last key/pad when asked by the software, and all keys/pads in between will be mapped too.
 
@@ -37,7 +37,7 @@ Keys and pads are treated pretty much the same, except their `type` property wil
 }
 ```
 
-### Knobs
+### Knobs and Sliders
 
 Knobs will include extra information such as if they are relative or not.
 
@@ -66,3 +66,11 @@ Absolute knobs will have a `value` property ranging from 0 to 127, indicating th
   id: 71,
 }
 ```
+
+I couldn't test sliders on my device since it doesn't have any, but they are expected to work just like absolute knobs, with their `type` being `slider` instead.
+
+### Pitch and Modulation
+
+Modulation is currently considered a normal slider, though it does have its own `modulation` type.
+
+Pitch is a little different, since its normal MIDI range is 14-bit instead of 7-bit. For the sake of simplicity, it has the `pitch` type and its values are normalized in the -1 to +1 range, under the `value1` property. The same applies to other controllers, with most of them being normalized in the 0 to +1 range under the same property (relative knobs can also go down to -1).
