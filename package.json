@@ -1,0 +1,25 @@
+{
+  "name": "midiboard",
+  "version": "0.1.0",
+  "description": "MIDI controller integration for the masses",
+  "main": "index.js",
+  "scripts": {
+    "run": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatheusMK3/midiboard.git"
+  },
+  "author": "Matheus Pratta",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MatheusMK3/midiboard/issues"
+  },
+  "homepage": "https://github.com/MatheusMK3/midiboard#readme",
+  "dependencies": {
+    "easymidi": "^2.0.1"
+  },
+  "devDependencies": {
+    "prompts": "^2.3.2"
+  }
+}
